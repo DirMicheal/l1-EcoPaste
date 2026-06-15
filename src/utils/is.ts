@@ -4,6 +4,53 @@ import { isEmpty } from "es-toolkit/compat";
 import isUrl from "is-url";
 
 /**
+ * 不被视作有效颜色的关键字与系统颜色
+ */
+const EXCLUDED_COLOR_VALUES = [
+  "none",
+  "currentColor",
+  "-moz-initial",
+  "inherit",
+  "initial",
+  "revert",
+  "revert-layer",
+  "unset",
+  "ActiveBorder",
+  "ActiveCaption",
+  "AppWorkspace",
+  "Background",
+  "ButtonFace",
+  "ButtonHighlight",
+  "ButtonShadow",
+  "ButtonText",
+  "CaptionText",
+  "GrayText",
+  "Highlight",
+  "HighlightText",
+  "InactiveBorder",
+  "InactiveCaption",
+  "InactiveCaptionText",
+  "InfoBackground",
+  "InfoText",
+  "Menu",
+  "MenuText",
+  "Scrollbar",
+  "ThreeDDarkShadow",
+  "ThreeDFace",
+  "ThreeDHighlight",
+  "ThreeDLightShadow",
+  "ThreeDShadow",
+  "Window",
+  "WindowFrame",
+  "WindowText",
+];
+
+/**
+ * 用于检测颜色值的样式声明，复用同一实例以避免每次调用都创建 DOM 元素
+ */
+const detectionStyle: CSSStyleDeclaration = new Option().style;
+
+/**
  * 是否为开发环境
  */
 export const isDev = () => {
@@ -45,53 +92,16 @@ export const isEmail = (value: string) => {
  * 是否为颜色
  */
 export const isColor = (value: string) => {
-  const excludes = [
-    "none",
-    "currentColor",
-    "-moz-initial",
-    "inherit",
-    "initial",
-    "revert",
-    "revert-layer",
-    "unset",
-    "ActiveBorder",
-    "ActiveCaption",
-    "AppWorkspace",
-    "Background",
-    "ButtonFace",
-    "ButtonHighlight",
-    "ButtonShadow",
-    "ButtonText",
-    "CaptionText",
-    "GrayText",
-    "Highlight",
-    "HighlightText",
-    "InactiveBorder",
-    "InactiveCaption",
-    "InactiveCaptionText",
-    "InfoBackground",
-    "InfoText",
-    "Menu",
-    "MenuText",
-    "Scrollbar",
-    "ThreeDDarkShadow",
-    "ThreeDFace",
-    "ThreeDHighlight",
-    "ThreeDLightShadow",
-    "ThreeDShadow",
-    "Window",
-    "WindowFrame",
-    "WindowText",
-  ];
+  if (EXCLUDED_COLOR_VALUES.includes(value) || value.includes("url")) {
+    return false;
+  }
 
-  if (excludes.includes(value) || value.includes("url")) return false;
+  detectionStyle.backgroundColor = "";
+  detectionStyle.backgroundImage = "";
+  detectionStyle.backgroundColor = value;
+  detectionStyle.backgroundImage = value;
 
-  const style = new Option().style;
-
-  style.backgroundColor = value;
-  style.backgroundImage = value;
-
-  const { backgroundColor, backgroundImage } = style;
+  const { backgroundColor, backgroundImage } = detectionStyle;
 
   return backgroundColor !== "" || backgroundImage !== "";
 };

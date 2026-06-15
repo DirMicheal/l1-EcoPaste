@@ -7,7 +7,7 @@ const { getDesignToken, darkAlgorithm } = theme;
 /**
  * 生成 antd 的颜色变量
  */
-export const generateColorVars = () => {
+export const generateColorVars = (): void => {
   const colors = [
     getDesignToken(),
     getDesignToken({ algorithm: darkAlgorithm }),
@@ -16,7 +16,7 @@ export const generateColorVars = () => {
   for (const [index, item] of colors.entries()) {
     const isDark = index !== 0;
 
-    const vars: Record<string, any> = {};
+    const vars: Record<string, string | number> = {};
 
     for (const [key, value] of Object.entries(item)) {
       vars[`--ant-${kebabCase(key)}`] = value;
