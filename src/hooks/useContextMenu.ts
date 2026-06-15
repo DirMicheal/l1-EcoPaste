@@ -19,7 +19,8 @@ interface UseContextMenuProps extends ItemProps {
   handleNext: () => void;
 }
 
-interface ContextMenuItem extends MenuItemOptions {
+interface ContextMenuItem extends Omit<MenuItemOptions, "action"> {
+  action?: () => void | Promise<unknown>;
   hide?: boolean;
 }
 
@@ -78,13 +79,15 @@ export const useContextMenu = (props: UseContextMenuProps) => {
   };
 
   const openToFinder = () => {
-    if (type === "text") {
-      return revealItemInDir(value);
+    if (type === "files" && isArray(value)) {
+      const [file] = value;
+
+      return revealItemInDir(file);
     }
 
-    const [file] = value;
-
-    revealItemInDir(file);
+    if (!isArray(value)) {
+      revealItemInDir(value);
+    }
   };
 
   const handleDelete = async () => {
@@ -95,14 +98,14 @@ export const useContextMenu = (props: UseContextMenuProps) => {
     let confirmed = true;
 
     if (clipboardStore.content.deleteConfirm) {
-      confirmed = await deleteModal.confirm({
+      confirmed = (await deleteModal.confirm({
         afterClose() {
           // 关闭确认框后焦点还在，需要手动取消焦点
           (document.activeElement as HTMLElement)?.blur();
         },
         centered: true,
         content: t("clipboard.hints.delete_modal_content"),
-      });
+      })) as boolean;
     }
 
     if (!confirmed) return;
