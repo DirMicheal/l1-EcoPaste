@@ -4,6 +4,53 @@ import { isEmpty } from "es-toolkit/compat";
 import isUrl from "is-url";
 
 /**
+ * 颜色检测排除列表（CSS 关键字和系统颜色）
+ */
+const COLOR_EXCLUDES = new Set([
+  "none",
+  "currentColor",
+  "-moz-initial",
+  "inherit",
+  "initial",
+  "revert",
+  "revert-layer",
+  "unset",
+  "ActiveBorder",
+  "ActiveCaption",
+  "AppWorkspace",
+  "Background",
+  "ButtonFace",
+  "ButtonHighlight",
+  "ButtonShadow",
+  "ButtonText",
+  "CaptionText",
+  "GrayText",
+  "Highlight",
+  "HighlightText",
+  "InactiveBorder",
+  "InactiveCaption",
+  "InactiveCaptionText",
+  "InfoBackground",
+  "InfoText",
+  "Menu",
+  "MenuText",
+  "Scrollbar",
+  "ThreeDDarkShadow",
+  "ThreeDFace",
+  "ThreeDHighlight",
+  "ThreeDLightShadow",
+  "ThreeDShadow",
+  "Window",
+  "WindowFrame",
+  "WindowText",
+]);
+
+/**
+ * 复用的 DOM 元素，用于颜色值检测
+ */
+const colorProbeStyle: CSSStyleDeclaration = new Option().style;
+
+/**
  * 是否为开发环境
  */
 export const isDev = () => {
@@ -44,56 +91,13 @@ export const isEmail = (value: string) => {
 /**
  * 是否为颜色
  */
-export const isColor = (value: string) => {
-  const excludes = [
-    "none",
-    "currentColor",
-    "-moz-initial",
-    "inherit",
-    "initial",
-    "revert",
-    "revert-layer",
-    "unset",
-    "ActiveBorder",
-    "ActiveCaption",
-    "AppWorkspace",
-    "Background",
-    "ButtonFace",
-    "ButtonHighlight",
-    "ButtonShadow",
-    "ButtonText",
-    "CaptionText",
-    "GrayText",
-    "Highlight",
-    "HighlightText",
-    "InactiveBorder",
-    "InactiveCaption",
-    "InactiveCaptionText",
-    "InfoBackground",
-    "InfoText",
-    "Menu",
-    "MenuText",
-    "Scrollbar",
-    "ThreeDDarkShadow",
-    "ThreeDFace",
-    "ThreeDHighlight",
-    "ThreeDLightShadow",
-    "ThreeDShadow",
-    "Window",
-    "WindowFrame",
-    "WindowText",
-  ];
+export const isColor = (value: string): boolean => {
+  if (COLOR_EXCLUDES.has(value) || value.includes("url")) return false;
 
-  if (excludes.includes(value) || value.includes("url")) return false;
+  colorProbeStyle.backgroundColor = value;
+  colorProbeStyle.backgroundImage = value;
 
-  const style = new Option().style;
-
-  style.backgroundColor = value;
-  style.backgroundImage = value;
-
-  const { backgroundColor, backgroundImage } = style;
-
-  return backgroundColor !== "" || backgroundImage !== "";
+  return colorProbeStyle.backgroundColor !== "" || colorProbeStyle.backgroundImage !== "";
 };
 
 /**
