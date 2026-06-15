@@ -8,12 +8,12 @@ import { getSaveDatabasePath } from "@/utils/path";
 
 let db: Kysely<DatabaseSchema> | null = null;
 
-export const getDatabase = async () => {
+export const getDatabase = async (): Promise<Kysely<DatabaseSchema>> => {
   if (db) return db;
 
   const path = await getSaveDatabasePath();
 
-  db = new Kysely<DatabaseSchema>({
+  const database = new Kysely<DatabaseSchema>({
     dialect: new TauriSqliteDialect({
       database: (prefix) => Database.load(prefix + path),
     }),
@@ -31,7 +31,7 @@ export const getDatabase = async () => {
     ],
   });
 
-  await db.schema
+  await database.schema
     .createTable("history")
     .ifNotExists()
     .addColumn("id", "text", (col) => col.primaryKey())
@@ -48,7 +48,9 @@ export const getDatabase = async () => {
     .addColumn("subtype", "text")
     .execute();
 
-  return db;
+  db = database;
+
+  return database;
 };
 
 export const destroyDatabase = async () => {

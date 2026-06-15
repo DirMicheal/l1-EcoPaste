@@ -1,25 +1,34 @@
 import { exists, remove } from "@tauri-apps/plugin-fs";
-import type { AnyObject } from "antd/es/_util/type";
 import type { SelectQueryBuilder } from "kysely";
 import { getDefaultSaveImagePath } from "tauri-plugin-clipboard-x-api";
-import type { DatabaseSchema, DatabaseSchemaHistory } from "@/types/database";
+import type {
+  DatabaseSchema,
+  DatabaseSchemaHistory,
+  HistorySelectResult,
+} from "@/types/database";
 import { join } from "@/utils/path";
 import { getDatabase } from ".";
 
-type QueryBuilder = SelectQueryBuilder<DatabaseSchema, "history", AnyObject>;
+type QueryBuilder = SelectQueryBuilder<
+  DatabaseSchema,
+  "history",
+  HistorySelectResult
+>;
 
 export const selectHistory = async (
   fn?: (qb: QueryBuilder) => QueryBuilder,
 ) => {
   const db = await getDatabase();
 
-  let qb = db.selectFrom("history").selectAll() as QueryBuilder;
+  let qb: QueryBuilder = db.selectFrom("history").selectAll();
 
   if (fn) {
     qb = fn(qb);
   }
 
-  return qb.execute() as Promise<DatabaseSchemaHistory[]>;
+  // Kysely flattens the discriminated `history` row on select; recover the
+  // domain union for callers via `$castTo` so the result stays precisely typed.
+  return qb.$castTo<DatabaseSchemaHistory>().execute();
 };
 
 export const insertHistory = async (data: DatabaseSchemaHistory) => {
@@ -38,13 +47,14 @@ export const updateHistory = async (
 };
 
 export const deleteHistory = async (data: DatabaseSchemaHistory) => {
-  const { id, type, value } = data;
-
   const db = await getDatabase();
 
-  await db.deleteFrom("history").where("id", "=", id).execute();
+  await db.deleteFrom("history").where("id", "=", data.id).execute();
 
-  if (type !== "image") return;
+  if (data.type !== "image") return;
+
+  // `data` is now narrowed to the image variant, so `value` is a string path.
+  const { value } = data;
 
   let path = value;
 

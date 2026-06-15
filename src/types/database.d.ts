@@ -1,3 +1,4 @@
+import type { Selectable } from "kysely";
 import type {
   ClipboardContentType,
   ReadClipboardItemUnion,
@@ -17,6 +18,12 @@ export type DatabaseSchemaHistory<
   note?: string;
   subtype?: DatabaseSchemaHistorySubtype;
 };
+
+// The row shape Kysely yields when selecting from the history table. Kysely
+// flattens the `DatabaseSchemaHistory` discriminated union into a single row on
+// select, so this is the query builder's output type; `selectHistory` recovers
+// the domain union for callers via `$castTo`.
+export type HistorySelectResult = Selectable<DatabaseSchemaHistory>;
 
 export type DatabaseSchemaGroupId = LiteralUnion<
   "all" | "text" | "image" | "files" | "favorite",
