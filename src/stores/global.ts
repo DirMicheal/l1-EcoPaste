@@ -30,4 +30,4 @@ export const globalStore = proxy<GlobalStore>({
     auto: false,
     beta: false,
   },
-});
+} as const satisfies GlobalStore);

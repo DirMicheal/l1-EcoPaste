@@ -59,10 +59,12 @@ export type OperationButton =
   | "star"
   | "delete";
 
+export type WindowStyle = "standard" | "dock";
+
 export interface ClipboardStore {
   // 窗口设置
   window: {
-    style: "standard" | "dock";
+    style: WindowStyle;
     position: "remember" | "follow" | "center";
     backTop: boolean;
     showAll: boolean;

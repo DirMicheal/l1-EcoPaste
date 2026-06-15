@@ -34,4 +34,4 @@ export const clipboardStore = proxy<ClipboardStore>({
     showAll: false,
     style: "standard",
   },
-});
+} satisfies ClipboardStore);
