@@ -52,6 +52,11 @@ const Item: FC<ItemProps> = (props) => {
     rootState.activeId = rootState.list[index - 1].id;
   };
 
+  const { handleContextMenu, ...rest } = useContextMenu({
+    ...props,
+    handleNext,
+  });
+
   rootState.eventBus?.useSubscription((payload) => {
     if (payload.id !== id) return;
 
@@ -71,11 +76,6 @@ const Item: FC<ItemProps> = (props) => {
       case LISTEN_KEY.CLIPBOARD_ITEM_FAVORITE:
         return handleFavorite();
     }
-  });
-
-  const { handleContextMenu, ...rest } = useContextMenu({
-    ...props,
-    handleNext,
   });
 
   const handleClick = (type: typeof content.autoPaste) => {
