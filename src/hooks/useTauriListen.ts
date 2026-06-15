@@ -1,13 +1,24 @@
-import { listen } from "@tauri-apps/api/event";
-import { useMount, useUnmount } from "ahooks";
-import { useRef } from "react";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
+import { useEffect } from "react";
 
 export const useTauriListen = <T>(...args: Parameters<typeof listen<T>>) => {
-  const unlistenRef = useRef(() => {});
+  useEffect(() => {
+    let unlisten: UnlistenFn | undefined;
+    let cancelled = false;
 
-  useMount(async () => {
-    unlistenRef.current = await listen<T>(...args);
-  });
+    listen<T>(...args).then((fn) => {
+      // If the component unmounted before registration resolved, tear the
+      // listener down immediately; otherwise keep it for cleanup on unmount.
+      if (cancelled) {
+        fn();
+      } else {
+        unlisten = fn;
+      }
+    });
 
-  useUnmount(unlistenRef.current);
+    return () => {
+      cancelled = true;
+      unlisten?.();
+    };
+  }, []);
 };
