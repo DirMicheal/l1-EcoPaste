@@ -3,11 +3,24 @@ import { useMount, useUnmount } from "ahooks";
 import { useRef } from "react";
 
 export const useTauriListen = <T>(...args: Parameters<typeof listen<T>>) => {
-  const unlistenRef = useRef(() => {});
+  const unlistenRef = useRef<(() => void) | null>(null);
+  const isMountedRef = useRef(true);
 
   useMount(async () => {
-    unlistenRef.current = await listen<T>(...args);
+    const unlisten = await listen<T>(...args);
+
+    if (isMountedRef.current) {
+      unlistenRef.current = unlisten;
+    } else {
+      unlisten();
+    }
   });
 
-  useUnmount(unlistenRef.current);
+  useUnmount(() => {
+    isMountedRef.current = false;
+    if (unlistenRef.current) {
+      unlistenRef.current();
+      unlistenRef.current = null;
+    }
+  });
 };
