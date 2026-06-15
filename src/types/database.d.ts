@@ -6,6 +6,21 @@ import type { LiteralUnion } from "type-fest";
 
 export type DatabaseSchemaHistorySubtype = "url" | "email" | "color" | "path";
 
+export interface DatabaseSchemaHistoryRow {
+  id: string;
+  type: ClipboardContentType;
+  value: string | string[];
+  count: number;
+  width?: number;
+  height?: number;
+  group: DatabaseSchemaGroupId;
+  search: string;
+  favorite: boolean;
+  createTime: string;
+  note?: string;
+  subtype?: DatabaseSchemaHistorySubtype;
+}
+
 export type DatabaseSchemaHistory<
   T extends ClipboardContentType = ClipboardContentType,
 > = ReadClipboardItemUnion<T> & {
@@ -30,6 +45,6 @@ export interface DatabaseSchemaGroup {
 }
 
 export interface DatabaseSchema {
-  history: DatabaseSchemaHistory;
+  history: DatabaseSchemaHistoryRow;
   group: DatabaseSchemaGroup;
 }

@@ -1,12 +1,18 @@
 import { exists, remove } from "@tauri-apps/plugin-fs";
-import type { AnyObject } from "antd/es/_util/type";
 import type { SelectQueryBuilder } from "kysely";
 import { getDefaultSaveImagePath } from "tauri-plugin-clipboard-x-api";
-import type { DatabaseSchema, DatabaseSchemaHistory } from "@/types/database";
+import type {
+  DatabaseSchema,
+  DatabaseSchemaHistoryRow,
+} from "@/types/database";
 import { join } from "@/utils/path";
 import { getDatabase } from ".";
 
-type QueryBuilder = SelectQueryBuilder<DatabaseSchema, "history", AnyObject>;
+type QueryBuilder = SelectQueryBuilder<
+  DatabaseSchema,
+  "history",
+  DatabaseSchemaHistoryRow
+>;
 
 export const selectHistory = async (
   fn?: (qb: QueryBuilder) => QueryBuilder,
@@ -19,10 +25,10 @@ export const selectHistory = async (
     qb = fn(qb);
   }
 
-  return qb.execute() as Promise<DatabaseSchemaHistory[]>;
+  return qb.execute();
 };
 
-export const insertHistory = async (data: DatabaseSchemaHistory) => {
+export const insertHistory = async (data: DatabaseSchemaHistoryRow) => {
   const db = await getDatabase();
 
   return db.insertInto("history").values(data).execute();
@@ -30,14 +36,14 @@ export const insertHistory = async (data: DatabaseSchemaHistory) => {
 
 export const updateHistory = async (
   id: string,
-  nextData: Partial<DatabaseSchemaHistory>,
+  nextData: Partial<DatabaseSchemaHistoryRow>,
 ) => {
   const db = await getDatabase();
 
   return db.updateTable("history").set(nextData).where("id", "=", id).execute();
 };
 
-export const deleteHistory = async (data: DatabaseSchemaHistory) => {
+export const deleteHistory = async (data: DatabaseSchemaHistoryRow) => {
   const { id, type, value } = data;
 
   const db = await getDatabase();
@@ -45,6 +51,9 @@ export const deleteHistory = async (data: DatabaseSchemaHistory) => {
   await db.deleteFrom("history").where("id", "=", id).execute();
 
   if (type !== "image") return;
+
+  // When type is "image", value is always a string (file path)
+  if (typeof value !== "string") return;
 
   let path = value;
 

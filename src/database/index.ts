@@ -13,7 +13,7 @@ export const getDatabase = async () => {
 
   const path = await getSaveDatabasePath();
 
-  db = new Kysely<DatabaseSchema>({
+  const instance = new Kysely<DatabaseSchema>({
     dialect: new TauriSqliteDialect({
       database: (prefix) => Database.load(prefix + path),
     }),
@@ -31,7 +31,7 @@ export const getDatabase = async () => {
     ],
   });
 
-  await db.schema
+  await instance.schema
     .createTable("history")
     .ifNotExists()
     .addColumn("id", "text", (col) => col.primaryKey())
@@ -47,6 +47,8 @@ export const getDatabase = async () => {
     .addColumn("note", "text")
     .addColumn("subtype", "text")
     .execute();
+
+  db = instance;
 
   return db;
 };

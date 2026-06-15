@@ -4,6 +4,7 @@ import { isString } from "es-toolkit";
 import { unionBy } from "es-toolkit/compat";
 import { useContext } from "react";
 import { getDefaultSaveImagePath } from "tauri-plugin-clipboard-x-api";
+import type { DatabaseSchemaHistory } from "@/types/database";
 import { LISTEN_KEY } from "@/constants";
 import { selectHistory } from "@/database/history";
 import { MainContext } from "@/pages/Main";
@@ -81,14 +82,18 @@ export const useHistoryList = (options: Options) => {
       state.noMore = list.length === 0;
 
       if (page === 1) {
-        rootState.list = list;
+        rootState.list = list as DatabaseSchemaHistory[];
 
         if (state.noMore) return;
 
         return scrollToTop();
       }
 
-      rootState.list = unionBy(rootState.list, list, "id");
+      rootState.list = unionBy(
+        rootState.list,
+        list as DatabaseSchemaHistory[],
+        "id",
+      );
     } finally {
       state.loading = false;
     }
